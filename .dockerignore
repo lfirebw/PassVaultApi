@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/.vscode/
+**/.idea/
+**/*.user
+**/*.suo
+**/*.cache
+**/Properties/launchSettings.json
+*.md
+*.log
+docker-compose*
+Dockerfile
