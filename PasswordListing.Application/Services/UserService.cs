@@ -9,16 +9,16 @@ namespace PasswordListing.Application.Services;
 
 public class UserService : IUserService
 {
-    private readonly IUserMemoryRepository _userRepository;
+    private readonly IUnitOfWork _persistence;
 
-    public UserService(IUserMemoryRepository userRepository)
+    public UserService(IUnitOfWork persistence)
     {
-        _userRepository = userRepository;
+        _persistence = persistence;
     }
     public async Task<IEnumerable<UserResponse>> GetAllAsync()
     {
         List<UserResponse> result = [];
-        var data = await _userRepository.GetAllAsync();
+        var data = await _persistence.Users.GetAllAsync();
         if(data==null)
             return result;
         var prepare = data.Select(user=>new UserResponse
@@ -39,7 +39,7 @@ public class UserService : IUserService
     }
     public async Task<UserResponse?> GetByIdAsync(Guid id)
     {
-        var findUser = await _userRepository.GetByIdAsync(id);
+        var findUser = await _persistence.Users.GetByIdAsync(id);
         if(findUser == null)
             return null;
         return new UserResponse
@@ -54,7 +54,7 @@ public class UserService : IUserService
     public async Task<UserResponse?> GetCurrentUser(ClaimsPrincipal userClaims)
     {
         string email = userClaims.FindFirst(ClaimTypes.Email)?.Value ?? throw new UnauthorizedAccessException("User not found");
-        var findUser = await _userRepository.GetByEmailAsync(email);
+        var findUser = await _persistence.Users.GetByEmailAsync(email);
         if(findUser == null)
             return null;
         return new UserResponse
@@ -69,29 +69,32 @@ public class UserService : IUserService
     public async Task<bool> Update(string guid, UserPutRequest request)
     {
         Guid guidParse = Guid.Parse(guid);
-        var findUser = await _userRepository.GetByIdAsync(guidParse);
+        var findUser = await _persistence.Users.GetByIdAsync(guidParse);
         if(findUser == null)
             return false;
-        bool result = await _userRepository.Update(findUser);
-        return result;
+        await _persistence.Users.UpdateAsync(findUser);
+        await _persistence.SaveChangesAsync();
+        return true;
     }
     public async Task<bool> UpdateStatus(string id, byte status)
     {
         Guid guidParse = Guid.Parse(id);
-        var findUser = await _userRepository.GetByIdAsync(guidParse);
+        var findUser = await _persistence.Users.GetByIdAsync(guidParse);
         if(findUser == null)
             return false;
         findUser.IsActive = status;
-        bool result = await _userRepository.Update(findUser);
-        return result;
+        await _persistence.Users.UpdateAsync(findUser);
+        await _persistence.SaveChangesAsync();
+        return true;
     }
     public async Task<bool> Delete(string id)
     {
         Guid guidParse = Guid.Parse(id);
-        var findUser = await _userRepository.GetByIdAsync(guidParse);
+        var findUser = await _persistence.Users.GetByIdAsync(guidParse);
         if(findUser == null)
             return false;
-        bool result = await _userRepository.Delete(findUser);
-        return result;
+        await _persistence.Users.DeleteAsync(findUser);
+        await _persistence.SaveChangesAsync();
+        return true;
     }
 }

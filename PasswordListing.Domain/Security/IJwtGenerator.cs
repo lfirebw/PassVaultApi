@@ -6,4 +6,5 @@ namespace PasswordListing.Domain.Security;
 public interface IJwtGenerator
 {
     string GenerateToken(User user);
+    string GenerateRefreshToken();
 }

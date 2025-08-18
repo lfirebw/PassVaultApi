@@ -8,15 +8,15 @@ namespace PasswordListing.Application.Services;
 
 public class ItemService : IItemService
 {
-    private readonly IItemMemoryRepository _itemRepository;
+    private readonly IUnitOfWork _persistence;
 
-    public ItemService(IItemMemoryRepository itemRepository)
+    public ItemService(IUnitOfWork persistence)
     {
-        _itemRepository = itemRepository;
+        _persistence = persistence;
     }
     public async Task<IEnumerable<ItemResponse>> GetAllAsync()
     {
-        var items = await _itemRepository.GetAllAsync();
+        var items = await _persistence.Items.GetAllAsync();
         return items.Select(i => new ItemResponse
         {
             Name = i.Name,
@@ -29,7 +29,7 @@ public class ItemService : IItemService
         if (!Guid.TryParse(id, out var guid))
             return null;
 
-        var item = await _itemRepository.GetByIdAsync(guid);
+        var item = await _persistence.Items.GetByIdAsync(guid);
         if (item == null) return null;
 
         return new ItemResponse
@@ -52,14 +52,16 @@ public class ItemService : IItemService
             CreatedAt = DateTime.UtcNow
         };
 
-        return await _itemRepository.CreateAsync(newItem);
+        await _persistence.Items.AddAsync(newItem);
+        await _persistence.SaveChangesAsync();
+        return true;
     }
     public async Task<bool> UpdateAsync(string id, UpdateItemRequest request)
     {
         if (!Guid.TryParse(id, out var guid))
             return false;
 
-        var existingItem = await _itemRepository.GetByIdAsync(guid);
+        var existingItem = await _persistence.Items.GetByIdAsync(guid);
         if (existingItem == null)
             return false;
 
@@ -67,17 +69,21 @@ public class ItemService : IItemService
         existingItem.Description = request.Description;
         existingItem.Value = request.Value;
 
-        return await _itemRepository.UpdateAsync(existingItem);
+        await _persistence.Items.UpdateAsync(existingItem);
+        await _persistence.SaveChangesAsync();
+        return true;
     }
     public async Task<bool> DeleteAsync(string id)
     {
         if (!Guid.TryParse(id, out var guid))
             return false;
 
-        var existingItem = await _itemRepository.GetByIdAsync(guid);
+        var existingItem = await _persistence.Items.GetByIdAsync(guid);
         if (existingItem == null)
             return false;
 
-        return await _itemRepository.DeleteAsync(existingItem);
+        await _persistence.Items.DeleteAsync(existingItem);
+        await _persistence.SaveChangesAsync();
+        return true;
     }
 }

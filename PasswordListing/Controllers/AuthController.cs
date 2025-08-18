@@ -14,7 +14,15 @@ namespace PasswordListing.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            request.IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var response = await _authService.LoginAsync(request);
+            return Ok(response);
+        }
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        {
+            request.IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var response = await _authService.RefreshTokenAsync(request);
             return Ok(response);
         }
         [HttpPost("change-password")]

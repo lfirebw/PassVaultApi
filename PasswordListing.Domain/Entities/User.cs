@@ -13,7 +13,9 @@ public class User
     public byte IsActive { get; set; } = 0;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    public ICollection<RefreshToken>? RefreshTokens { get; set; }
+
+
     public string FullName 
         => $"{FirstName} {LastName}";
-    // TODO: Add ValueObjects if needed later
 }

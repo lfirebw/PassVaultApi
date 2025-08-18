@@ -27,7 +27,19 @@ builder.Services.AddScoped<CustomJwtBearerEventsHandler>();
 builder.Services.AddTransient<IItemService, ItemService>();
 builder.Services.AddTransient<IUserService, UserService>();
 
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins", policy =>
+    {
+        policy.WithOrigins([
+            "http://localhost:5173",
+            "http://localhost:3000"
+        ])
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 builder.Services.AddControllers();
 builder.Services
     .AddAuthentication(opt=>{
@@ -73,6 +85,7 @@ try
     Console.WriteLine($"[ERROR] Exception on migrate: {ex.Message}");
 }
 
+app.UseCors("AllowSpecificOrigins");
 // builder.Services.AddEndpointsApiExplorer(); // Line for start documentation
 app.UseAuthentication();
 app.UseAuthorization();

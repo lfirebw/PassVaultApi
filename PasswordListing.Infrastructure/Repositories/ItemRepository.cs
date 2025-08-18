@@ -8,4 +8,7 @@ namespace PasswordListing.Infrastructure.Repositories;
 public class ItemRepository : GenericRepository<Item>, IItemRepository
 {
     public ItemRepository(AppDbContext context) : base(context) {}
+    public void Dispose(){
+        throw new ApplicationException();
+    }
 }
