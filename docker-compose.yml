@@ -9,14 +9,29 @@ services:
       - "5063:5063"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=db;Database=PasswordListingDb;User=postgres;Password=123456;
+      - ASPNETCORE_URLS=http://+:5063
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ConnectionStrings__DefaultConnection=Server=db;Port=5432;Database=PasswordListingDb;Username=postgres;Password=123456;
     depends_on:
       - db
     volumes:
-      - ./PasswordListing:/src/PasswordListing
-      - ./PasswordListing.Application:/src/PasswordListing.Application
-      - ./PasswordListing.Infrastructure:/src/PasswordListing.Infrastructure
-      - ./PasswordListing.Domain:/src/PasswordListing.Domain
+      - .:/app
+      - /app/PasswordListing/bin
+      - /app/PasswordListing/obj
+      - /app/PasswordListing.Infrastructure/obj
+      - /app/PasswordListing.Infrastructure/bin
+      # - ./PasswordListing:/src/PasswordListing
+      # - ./PasswordListing.Application:/src/PasswordListing.Application
+      # - ./PasswordListing.Infrastructure:/src/PasswordListing.Infrastructure
+      # - ./PasswordListing.Domain:/src/PasswordListing.Domain
+      # - ~/.nuget/packages:/root/.nuget/packages:cached
+
+    command: >
+      sh -c "dotnet watch --project PasswordListing run --urls http://+:5063"
+    #  dotnet restore --packages /root/.nuget/packages
+    #  dotnet run --project PasswordListing --urls http://+:5063
+    #  dotnet watch --project PasswordListing run --urls http://+:5063
   db:
     image: postgres:17-alpine
     container_name: passwordlisting_db
